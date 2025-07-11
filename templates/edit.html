@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Aufgabe bearbeiten</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Aufgabe bearbeiten</h1>
+    <form action="{{ url_for('edit', task_id=task['id']) }}" method="POST" class="form-grid">
+      <input type="text" name="task" value="{{ task['text'] }}" required class="wide-input">
+      <input type="date" name="deadline" value="{{ task['deadline'] or '' }}" class="wide-input">
+      <select name="priority" class="wide-input">
+        <option value="Hoch" {% if task['priority']=='Hoch' %}selected{% endif %}>Hoch</option>
+        <option value="Mittel" {% if task['priority']=='Mittel' %}selected{% endif %}>Mittel</option>
+        <option value="Niedrig" {% if task['priority']=='Niedrig' %}selected{% endif %}>Niedrig</option>
+      </select>
+      <textarea name="remark" class="wide-input">{{ task['remark'] or '' }}</textarea>
+      <button type="submit">Speichern</button>
+    </form>
+    <h2>Angehängte Dateien</h2>
+    <ul>
+      {% for filename in attachments %}
+      <li><a href="{{ url_for('uploaded_file', task_id=task['id'], filename=filename) }}">{{ filename }}</a></li>
+      {% endfor %}
+    </ul>
+    <h2>Dateien hochladen</h2>
+    <form action="/upload/{{ task['id'] }}" class="dropzone" id="dz-edit-{{ task['id'] }}"></form>
+    {% if attachments %}
+    <h3>Hochgeladene Dateien:</h3>
+    <ul class="attachments">
+      {% for filename in attachments %}
+      <li><a href="{{ url_for('uploaded_file', task_id=task['id'], filename=filename) }}" target="_blank">{{ filename }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <a class="back-link" href="{{ url_for('index') }}">Zurück zur Liste</a>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudfla```

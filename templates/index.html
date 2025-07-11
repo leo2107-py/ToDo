@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>ToDo Liste</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1>ToDo Liste</h1>
+    <form action="/" method="POST" class="form-grid">
+      <input type="text" name="task" placeholder="Neue Aufgabe" required class="wide-input">
+      <input type="date" name="deadline" class="wide-input">
+      <select name="priority" class="wide-input">
+        <option value="Hoch">Hoch</option>
+        <option value="Mittel" selected>Mittel</option>
+        <option value="Niedrig">Niedrig</option>
+      </select>
+      <textarea name="remark" placeholder="Bemerkung" class="wide-input"></textarea>
+      <button type="submit">Hinzufügen</button>
+    </form>
+    <table id="taskTable" class="task-table">
+      <thead>
+        <tr>
+          <th>Priorität</th>
+          <th>Aufgabe</th>
+          <th>Deadline</th>
+          <th>Bemerkung</th>
+          <th>Anhang</th>
+          <th>Status</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+        <tr class="{% if task['completed'] %}completed{% endif %}">
+          <td>{{ task['priority'] }}</td>
+          <td>{{ task['text'] }}</td>
+          <td>{{ task['deadline'] or '' }}</td>
+          <td>{{ task['remark'] or '' }}</td>
+          <td class="upload-cell">
+            <form action="/upload/{{ task['id'] }}" class="dropzone" id="dz-{{ task['id'] }}"></form>
+            {% if task['attachments'] %}
+            <ul class="attachments">
+              {% for filename in task['attachments'] %}
+              <li><a href="{{ url_for('uploaded_file', task_id=task['id'], filename=filename) }}" target="_blank">{{ filename }}</a></li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </td>
+          <td>{% if task['completed'] %}Erledigt{% else %}Offen{% endif %}</td>
+          <td>
+            <a href="{{ url_for('toggle', task_id=task['id']) }}">{% if task['completed'] %}Rückgängig{% else %}Erledigt{% endif %}</a>
+            <a href="{{ url_for('edit', task_id=task['id']) }}">Bearbeiten</a>
+            <a href="{{ url_for('delete', task_id=task['id']) }}">Löschen</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="nav">
+      <a href="{{ url_for('calendar_view') }}">Zum Kalender</a><br>
+      <a href="{{ url_for('archive') }}">Archiv</a>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+  <script>
+    Dropzone.autoDiscover = false;
+    $(function() {
+      $('#taskTable').DataTable({ dom:'frtip', order:[[0,'asc']] });
+      {% for task in tasks %}
+      new Dropzone('#dz-{{ task['id'] }}', { paramName:'file', maxFilesize:10, clickable: true });
+      {% endfor %}
+    });
+  </script>
+</body>

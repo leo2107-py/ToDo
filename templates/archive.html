@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Archivierte Aufgaben</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Archiv</h1>
+    <table id="archiveTable" class="task-table">
+      <thead>
+        <tr>
+          <th>Priorität</th>
+          <th>Aufgabe</th>
+          <th>Deadline</th>
+          <th>Bemerkung</th>
+          <th>Anhang</th>
+          <th>Erledigt am</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for task in tasks %}
+        <tr>
+          <td>{{ task.priority }}</td>
+          <td>{{ task.text }}</td>
+          <td>{{ task.deadline or '' }}</td>
+          <td>{{ task.remark or '' }}</td>
+          <td class="upload-cell">
+            {% if task.attachments %}
+            <ul class="attachments">
+              {% for fn in task.attachments %}
+                <li>
+                  <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}"
+                     target="_blank">{{ fn }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+              –
+            {% endif %}
+          </td>
+          <td>{{ task.completed_at or '' }}</td>
+          <td>
+            <a href="{{ url_for('delete', task_id=task.id) }}">Löschen</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <a class="back-link" href="{{ url_for('index') }}">Zurück</a>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script>
+    $(function() {
+      $('#archiveTable').DataTable({ dom:'frtip', order:[[0,'asc']] });
+    });
+  </script>
+</body>
+</html>

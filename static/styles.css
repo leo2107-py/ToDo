@@ -1,0 +1,171 @@
+/* Grundlegende Seitenstile */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Container für Inhalte */
+.container {
+    width: 80%;
+    margin: 20px auto;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+/* Überschrift */
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Formular-Grid für Eingabefelder */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Einheitliche Breite für Textfelder und Textarea */
+.wide-input,
+textarea {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+/* Tabellenlayout (flexible Spaltenbreite) */
+.task-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    table-layout: auto;
+}
+
+/* Tabellenzellen */
+.task-table th,
+.task-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+/* Tabellenkopf */
+.task-table th {
+    background-color: #f0f0f0;
+}
+
+/* Abgeschlossene Aufgaben */
+.task-table tr.completed {
+    background-color: #f9f9f9;
+    color: #888;
+}
+
+/* DataTables-Filter-Stil */
+.dt-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.dt-filter {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #007BFF;
+    border-radius: 4px;
+    background-color: #e9f5ff;
+}
+
+/* Navigation und Rücklink */
+.nav,
+.back-link {
+    text-align: center;
+    margin-top: 20px;
+}
+.nav a,
+.back-link a {
+    display: inline-block;
+    margin: 5px 10px;
+    color: #007BFF;
+    text-decoration: none;
+}
+.nav a:hover,
+.back-link a:hover {
+    text-decoration: underline;
+}
+
+/* Kalender-Container */
+#calendar {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Remark cell layout */
+.remark-cell {
+    display: block;
+}
+.remark-text {
+    padding-right: 10px;
+    overflow-wrap: break-word;
+    max-height: none;
+    overflow: visible;
+}
+
+/* --- Spalte "Anhang" anpassen --- */
+/* Breitere Spalte, linke Rahmenlinie entfernen */
+.task-table th:nth-child(5),
+.task-table td:nth-child(5) {
+    width: 180px;
+    border-left: none;
+}
+
+/* Die rechte Rahmenlinie zur Status-Spalte bleibt bestehen */
+
+/* Anhänge-Liste */
+.attachments {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 0;
+    margin-top: 5px;
+    list-style: none;
+    white-space: normal;
+    word-break: break-all;
+}
+.attachments li a {
+    text-decoration: none;
+    color: #007BFF;
+    font-size: 0.9em;
+}
+.attachments li a:hover {
+    text-decoration: underline;
+}
+
+/* --- Upload-Zelle und Dropzone --- */
+.upload-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+/* Größere, quadratische Dropzone mit Text zentriert */
+.upload-cell .dropzone {
+    width: 80px;
+    height: 80px;
+    border: 2px dashed #007BFF;
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75em;
+    text-align: center;
+    padding: 5px;
+}
