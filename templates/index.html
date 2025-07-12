@@ -85,7 +85,7 @@
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
   <script>
-    // Dark Mode
+
     const btn = document.getElementById('darkModeToggle');
     if (localStorage.getItem('darkMode')==='enabled') document.body.classList.add('dark-mode');
     btn.addEventListener('click', ()=>{
@@ -94,7 +94,6 @@
         document.body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
     });
 
-    // DataTable + Dropzone
     Dropzone.autoDiscover = false;
     const existing = {
       {% for task in tasks %}

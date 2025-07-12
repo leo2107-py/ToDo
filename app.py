@@ -9,12 +9,10 @@ DB_FILENAME = 'todo.db'
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 BACKUP_ROOT = 'backups'
 
-# Ensure folders exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(BACKUP_ROOT, exist_ok=True)
 
 def backup_data():
-    """Bei App-Start: todo.db und Uploads in einen Zeitstempel-Ordner kopieren."""
     ts = datetime.now().strftime('%Y%m%d_%H%M%S')
     dest = os.path.join(BACKUP_ROOT, ts)
     os.makedirs(dest, exist_ok=True)
@@ -63,7 +61,7 @@ def upload(task_id):
         task_folder = os.path.join(UPLOAD_FOLDER, str(task_id))
         os.makedirs(task_folder, exist_ok=True)
         dest_path = os.path.join(task_folder, file.filename)
-        # Versionierung: falls existiert, umbenennen mit Zeitstempel
+        # Versionierung
         if os.path.exists(dest_path):
             name, ext = os.path.splitext(file.filename)
             ts = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -104,7 +102,7 @@ def index():
     tasks, today = [], date.today()
     for t in rows:
         task = dict(t)
-        # Überfällig?
+
         if task['deadline']:
             dl = datetime.strptime(task['deadline'], '%Y-%m-%d').date()
             task['overdue'] = (dl < today and not task['completed'])
@@ -211,8 +209,6 @@ def export():
                               mimetype='text/csv',
                               headers={'Content-Disposition':'attachment;filename=tasks.csv'})
 
-# … alle Routen oben …
-
 def init_db():
     db = get_db()
     # … deine CREATE TABLE …
@@ -231,10 +227,7 @@ def backup_data():
                         dirs_exist_ok=True)
 
 if __name__ == '__main__':
-    # Backup direkt beim Start (anstelle von before_first_request)
     backup_data()
-
-    # Initialisiere DB
     with app.app_context():
         init_db()
 
