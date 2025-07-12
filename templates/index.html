@@ -9,21 +9,14 @@
 </head>
 <body>
   <button id="darkModeToggle">Dark Mode</button>
-
   <div class="container">
-    <h1>ToDo Liste</h1>
-    <form action="/" method="POST" class="form-grid">
-      <input type="text" name="task" placeholder="Neue Aufgabe" required class="wide-input">
-      <input type="date" name="deadline" class="wide-input">
-      <select name="priority" class="wide-input">
-        <option value="Hoch">Hoch</option>
-        <option value="Mittel" selected>Mittel</option>
-        <option value="Niedrig">Niedrig</option>
-      </select>
-      <textarea name="remark" placeholder="Bemerkung" class="wide-input"></textarea>
-      <button type="submit">Hinzufügen</button>
-    </form>
-
+    <h1>ToDo Übersicht</h1>
+    <div class="nav">
+      <a href="{{ url_for('new_task') }}">➕ Neue Aufgabe</a>
+      <a href="{{ url_for('calendar_view') }}">🗓 Kalender</a>
+      <a href="{{ url_for('archive') }}">📦 Archiv</a>
+      <a href="{{ url_for('export') }}">⬇️ Export (CSV)</a>
+    </div>
     <table id="taskTable" class="task-table">
       <thead>
         <tr>
@@ -49,9 +42,7 @@
                       <img src="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" class="thumbnail">
                     </a>
                   {% else %}
-                    <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" target="_blank">
-                      {{ fn }}
-                    </a>
+                    <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" target="_blank">{{ fn }}</a>
                   {% endif %}
                   <a href="{{ url_for('delete_file', task_id=task.id, filename=fn) }}"
                      onclick="return confirm('Datei {{ fn }} wirklich löschen?')">🗑️</a>
@@ -63,53 +54,46 @@
           <td>{% if task.completed %}Erledigt{% else %}Offen{% endif %}</td>
           <td>
             <a href="{{ url_for('toggle', task_id=task.id) }}">
-              {% if task.completed %}Rückgängig{% else %}Erledigt{% endif %}
+              {% if task.completed %}↩ Offen{% else %}✔ Erledigt{% endif %}
             </a>
-            <a href="{{ url_for('edit', task_id=task.id) }}">Bearbeiten</a>
+            <a href="{{ url_for('edit', task_id=task.id) }}">✏️</a>
             <a href="{{ url_for('delete', task_id=task.id) }}"
-               onclick="return confirm('Aufgabe endgültig löschen?')">Löschen</a>
+               onclick="return confirm('Aufgabe endgültig löschen?')">🗑️</a>
           </td>
         </tr>
       {% endfor %}
       </tbody>
     </table>
-
-    <div class="nav">
-      <a href="{{ url_for('calendar_view') }}">Zum Kalender</a>
-      <a href="{{ url_for('archive') }}">Archiv</a>
-      <a href="{{ url_for('export') }}">Exportieren (CSV)</a>
-    </div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
   <script>
-
+    // Dark Mode
     const btn = document.getElementById('darkModeToggle');
     if (localStorage.getItem('darkMode')==='enabled') document.body.classList.add('dark-mode');
     btn.addEventListener('click', ()=>{
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('darkMode',
-        document.body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
+        document.body.classList.contains('dark-mode')?'enabled':'disabled');
     });
 
+    // DataTable + Dropzone
     Dropzone.autoDiscover = false;
     const existing = {
       {% for task in tasks %}
-      "{{ task.id }}": [{% for fn in task.attachments %}"{{ fn }}"{% if not loop.last %}, {% endif %}{% endfor %}],
+      "{{ task.id }}":[{% for fn in task.attachments %}"{{ fn }}"{% if not loop.last %}, {% endif %}{% endfor %}],
       {% endfor %}
     };
-    $(function() {
+    $(function(){
       $('#taskTable').DataTable({ dom:'frtip', order:[[0,'asc']] });
       {% for task in tasks %}
       (function(id){
         let dz=new Dropzone('#dz-'+id,{paramName:'file',maxFilesize:10,clickable:true});
         dz.on('sending',(file,xhr)=>{
           if(existing[id].includes(file.name) &&
-             !confirm(`Datei „${file.name}“ existiert bereits. Überschreiben?`)){
-            xhr.abort();
-          }
+             !confirm(`Datei „${file.name}“ existiert bereits. Überschreiben?`)) xhr.abort();
         });
         dz.on('success',()=>location.reload());
       })({{ task.id }});

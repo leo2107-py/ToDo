@@ -9,6 +9,7 @@ DB_FILENAME = 'todo.db'
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 BACKUP_ROOT = 'backups'
 
+# Ordner anlegen
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(BACKUP_ROOT, exist_ok=True)
 
@@ -16,10 +17,8 @@ def backup_data():
     ts = datetime.now().strftime('%Y%m%d_%H%M%S')
     dest = os.path.join(BACKUP_ROOT, ts)
     os.makedirs(dest, exist_ok=True)
-    # DB
     if os.path.exists(DB_FILENAME):
         shutil.copy2(DB_FILENAME, os.path.join(dest, DB_FILENAME))
-    # Uploads
     if os.path.isdir(UPLOAD_FOLDER):
         shutil.copytree(UPLOAD_FOLDER,
                         os.path.join(dest, 'uploads'),
@@ -58,16 +57,14 @@ def init_db():
 def upload(task_id):
     file = request.files.get('file')
     if file:
-        task_folder = os.path.join(UPLOAD_FOLDER, str(task_id))
-        os.makedirs(task_folder, exist_ok=True)
-        dest_path = os.path.join(task_folder, file.filename)
-        # Versionierung
-        if os.path.exists(dest_path):
+        folder = os.path.join(UPLOAD_FOLDER, str(task_id))
+        os.makedirs(folder, exist_ok=True)
+        dest = os.path.join(folder, file.filename)
+        if os.path.exists(dest):
             name, ext = os.path.splitext(file.filename)
             ts = datetime.now().strftime('%Y%m%d%H%M%S')
-            archived = f"{name}_{ts}{ext}"
-            os.rename(dest_path, os.path.join(task_folder, archived))
-        file.save(dest_path)
+            os.rename(dest, os.path.join(folder, f"{name}_{ts}{ext}"))
+        file.save(dest)
     return ('', 204)
 
 @app.route('/delete-file/<int:task_id>/<path:filename>')
@@ -80,20 +77,9 @@ def delete_file(task_id, filename):
 def uploaded_file(task_id, filename):
     return send_from_directory(os.path.join(UPLOAD_FOLDER, str(task_id)), filename)
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
     db = get_db()
-    if request.method == 'POST':
-        db.execute(
-            'INSERT INTO tasks (text, deadline, priority, remark) VALUES (?,?,?,?)',
-            (request.form['task'],
-             request.form.get('deadline') or None,
-             request.form.get('priority','Mittel'),
-             request.form.get('remark'))
-        )
-        db.commit()
-        return redirect(url_for('index'))
-
     rows = db.execute(
       "SELECT * FROM tasks WHERE archived=0 "
       "ORDER BY (CASE priority WHEN 'Hoch' THEN 1 WHEN 'Mittel' THEN 2 ELSE 3 END), "
@@ -102,7 +88,6 @@ def index():
     tasks, today = [], date.today()
     for t in rows:
         task = dict(t)
-
         if task['deadline']:
             dl = datetime.strptime(task['deadline'], '%Y-%m-%d').date()
             task['overdue'] = (dl < today and not task['completed'])
@@ -112,6 +97,21 @@ def index():
         task['attachments'] = os.listdir(folder) if os.path.isdir(folder) else []
         tasks.append(task)
     return render_template('index.html', tasks=tasks)
+
+@app.route('/new', methods=['GET', 'POST'])
+def new_task():
+    if request.method == 'POST':
+        db = get_db()
+        db.execute(
+          'INSERT INTO tasks (text, deadline, priority, remark) VALUES (?,?,?,?)',
+          (request.form['task'],
+           request.form.get('deadline') or None,
+           request.form.get('priority','Mittel'),
+           request.form.get('remark'))
+        )
+        db.commit()
+        return redirect(url_for('index'))
+    return render_template('new.html')
 
 @app.route('/task/<int:task_id>')
 def task_detail(task_id):
@@ -209,28 +209,8 @@ def export():
                               mimetype='text/csv',
                               headers={'Content-Disposition':'attachment;filename=tasks.csv'})
 
-def init_db():
-    db = get_db()
-    # … deine CREATE TABLE …
-    db.commit()
-
-def backup_data():
-    """Kopiert todo.db und Uploads in einen Zeitstempel-Ordner."""
-    ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-    dest = os.path.join(BACKUP_ROOT, ts)
-    os.makedirs(dest, exist_ok=True)
-    if os.path.exists(DB_FILENAME):
-        shutil.copy2(DB_FILENAME, os.path.join(dest, DB_FILENAME))
-    if os.path.isdir(UPLOAD_FOLDER):
-        shutil.copytree(UPLOAD_FOLDER,
-                        os.path.join(dest, 'uploads'),
-                        dirs_exist_ok=True)
-
 if __name__ == '__main__':
     backup_data()
     with app.app_context():
         init_db()
-
-    app.run(debug=True)
-
-
+    app.run(host='0.0.0.0', port=5000, debug=False)

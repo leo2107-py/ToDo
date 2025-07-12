@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
 </head>
 <body>
+  <button id="darkModeToggle">Dark Mode</button>
   <div class="container">
     <h1>Aufgabe bearbeiten</h1>
     <form action="{{ url_for('edit', task_id=task.id) }}" method="POST" class="form-grid">
@@ -25,50 +26,46 @@
     <form action="/upload/{{ task.id }}" class="dropzone" id="dz-edit-{{ task.id }}"></form>
 
     <h3>Vorhandene Dateien</h3>
-   <ul class="attachments">
-  {% for fn in attachments %}
-    <li>
-      <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" target="_blank">
-        {{ fn }}
-      </a>
-      <a href="{{ url_for('delete_file', task_id=task.id, filename=fn) }}"
-         onclick="return confirm('Datei {{ fn }} wirklich löschen?')">
-        🗑️
-      </a>
-    </li>
-  {% endfor %}
-</ul>
-
+    <ul class="attachments">
+      {% for fn in attachments %}
+        <li>
+          <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" target="_blank">
+            {{ fn }}
+          </a>
+          <a href="{{ url_for('delete_file', task_id=task.id, filename=fn) }}"
+             onclick="return confirm('Datei {{ fn }} wirklich löschen?')">🗑️</a>
+        </li>
+      {% endfor %}
+    </ul>
 
     <a class="back-link" href="{{ url_for('index') }}">Zurück zur Liste</a>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
-
   <script>
+    const btn = document.getElementById('darkModeToggle');
+    if (localStorage.getItem('darkMode')==='enabled') document.body.classList.add('dark-mode');
+    btn.addEventListener('click', ()=>{
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode',
+        document.body.classList.contains('dark-mode')?'enabled':'disabled');
+    });
+
     Dropzone.autoDiscover = false;
-
     const existingEdit = {
-      "{{ task.id }}": [{% for fn in attachments %}"{{ fn }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+      "{{ task.id }}":[{% for fn in attachments %}"{{ fn }}"{% if not loop.last %}, {% endif %}{% endfor %}]
     };
-
-    (function(id) {
-      const dz = new Dropzone('#dz-edit-' + id, {
-        paramName: 'file',
-        maxFilesize: 10,
-        clickable: true
+    (function(id){
+      let dz = new Dropzone('#dz-edit-'+id,{
+        paramName:'file', maxFilesize:10, clickable:true
       });
-      dz.on('sending', function(file, xhr) {
-        if (existingEdit[id].includes(file.name)) {
-          if (!confirm(`Datei „${file.name}“ existiert bereits. Überschreiben?`)) {
-            xhr.abort();
-          }
-        }
+      dz.on('sending',(file,xhr)=>{
+        if(existingEdit[id].includes(file.name) &&
+           !confirm(`Datei „${file.name}“ existiert bereits. Überschreiben?`)) xhr.abort();
       });
-      dz.on('success', function() {
-        location.reload();
-      });
+      dz.on('success',()=>location.reload());
     })({{ task.id }});
   </script>
 </body>
+</html>
