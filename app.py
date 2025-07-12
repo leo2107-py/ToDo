@@ -9,7 +9,7 @@ DB_FILENAME = 'todo.db'
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 BACKUP_ROOT = 'backups'
 
-# Ordner anlegen
+# Ordner erstellen
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(BACKUP_ROOT, exist_ok=True)
 
@@ -20,9 +20,7 @@ def backup_data():
     if os.path.exists(DB_FILENAME):
         shutil.copy2(DB_FILENAME, os.path.join(dest, DB_FILENAME))
     if os.path.isdir(UPLOAD_FOLDER):
-        shutil.copytree(UPLOAD_FOLDER,
-                        os.path.join(dest, 'uploads'),
-                        dirs_exist_ok=True)
+        shutil.copytree(UPLOAD_FOLDER, os.path.join(dest, 'uploads'), dirs_exist_ok=True)
 
 def get_db():
     if 'db' not in g:
@@ -56,28 +54,24 @@ def init_db():
 @app.route('/upload/<int:task_id>', methods=['POST'])
 def upload(task_id):
     file = request.files.get('file')
-    if file:
+    if file and file.filename:
         folder = os.path.join(UPLOAD_FOLDER, str(task_id))
         os.makedirs(folder, exist_ok=True)
-        dest = os.path.join(folder, file.filename)
-        if os.path.exists(dest):
-            name, ext = os.path.splitext(file.filename)
-            ts = datetime.now().strftime('%Y%m%d%H%M%S')
-            os.rename(dest, os.path.join(folder, f"{name}_{ts}{ext}"))
-        file.save(dest)
+        file.save(os.path.join(folder, file.filename))
     return ('', 204)
 
 @app.route('/delete-file/<int:task_id>/<path:filename>')
 def delete_file(task_id, filename):
     fp = os.path.join(UPLOAD_FOLDER, str(task_id), filename)
-    if os.path.exists(fp): os.remove(fp)
+    if os.path.exists(fp):
+        os.remove(fp)
     return redirect(request.referrer or url_for('index'))
 
 @app.route('/uploads/<int:task_id>/<filename>')
 def uploaded_file(task_id, filename):
     return send_from_directory(os.path.join(UPLOAD_FOLDER, str(task_id)), filename)
 
-@app.route('/', methods=['GET'])
+@app.route('/')
 def index():
     db = get_db()
     rows = db.execute(
@@ -85,7 +79,8 @@ def index():
       "ORDER BY (CASE priority WHEN 'Hoch' THEN 1 WHEN 'Mittel' THEN 2 ELSE 3 END), "
       "deadline IS NULL, deadline, created_at DESC"
     ).fetchall()
-    tasks, today = [], date.today()
+    tasks = []
+    today = date.today()
     for t in rows:
         task = dict(t)
         if task['deadline']:
@@ -102,14 +97,24 @@ def index():
 def new_task():
     if request.method == 'POST':
         db = get_db()
-        db.execute(
+        cur = db.execute(
           'INSERT INTO tasks (text, deadline, priority, remark) VALUES (?,?,?,?)',
-          (request.form['task'],
-           request.form.get('deadline') or None,
-           request.form.get('priority','Mittel'),
-           request.form.get('remark'))
+          (
+            request.form['task'],
+            request.form.get('deadline') or None,
+            request.form.get('priority', 'Mittel'),
+            request.form.get('remark')
+          )
         )
         db.commit()
+        task_id = cur.lastrowid
+        # Dateien speichern
+        files = request.files.getlist('attachments')
+        folder = os.path.join(UPLOAD_FOLDER, str(task_id))
+        os.makedirs(folder, exist_ok=True)
+        for f in files:
+            if f and f.filename:
+                f.save(os.path.join(folder, f.filename))
         return redirect(url_for('index'))
     return render_template('new.html')
 
@@ -117,7 +122,8 @@ def new_task():
 def task_detail(task_id):
     db = get_db()
     t = db.execute('SELECT * FROM tasks WHERE id=?', (task_id,)).fetchone()
-    if not t: return redirect(url_for('index'))
+    if not t:
+        return redirect(url_for('index'))
     task = dict(t)
     folder = os.path.join(UPLOAD_FOLDER, str(task_id))
     task['attachments'] = os.listdir(folder) if os.path.isdir(folder) else []
@@ -126,32 +132,38 @@ def task_detail(task_id):
 @app.route('/toggle/<int:task_id>')
 def toggle(task_id):
     db = get_db()
-    row = db.execute('SELECT completed FROM tasks WHERE id=?',(task_id,)).fetchone()
+    row = db.execute('SELECT completed FROM tasks WHERE id=?', (task_id,)).fetchone()
     new = 0 if row['completed'] else 1
     if new:
-        db.execute('UPDATE tasks SET completed=1, archived=1, completed_at=? WHERE id=?',
-                   (datetime.now(), task_id))
+        db.execute(
+          'UPDATE tasks SET completed=1, archived=1, completed_at=? WHERE id=?',
+          (datetime.now(), task_id)
+        )
     else:
-        db.execute('UPDATE tasks SET completed=0, archived=0, completed_at=NULL WHERE id=?',
-                   (task_id,))
+        db.execute(
+          'UPDATE tasks SET completed=0, archived=0, completed_at=NULL WHERE id=?',
+          (task_id,)
+        )
     db.commit()
     return redirect(url_for('index'))
 
-@app.route('/edit/<int:task_id>', methods=['GET','POST'])
+@app.route('/edit/<int:task_id>', methods=['GET', 'POST'])
 def edit(task_id):
     db = get_db()
-    if request.method=='POST':
+    if request.method == 'POST':
         db.execute(
           'UPDATE tasks SET text=?, deadline=?, priority=?, remark=? WHERE id=?',
-          (request.form['task'],
-           request.form.get('deadline') or None,
-           request.form.get('priority','Mittel'),
-           request.form.get('remark'),
-           task_id)
+          (
+            request.form['task'],
+            request.form.get('deadline') or None,
+            request.form.get('priority', 'Mittel'),
+            request.form.get('remark'),
+            task_id
+          )
         )
         db.commit()
         return redirect(url_for('index'))
-    t = db.execute('SELECT * FROM tasks WHERE id=?',(task_id,)).fetchone()
+    t = db.execute('SELECT * FROM tasks WHERE id=?', (task_id,)).fetchone()
     task = dict(t)
     folder = os.path.join(UPLOAD_FOLDER, str(task_id))
     attachments = os.listdir(folder) if os.path.isdir(folder) else []
@@ -160,7 +172,7 @@ def edit(task_id):
 @app.route('/delete/<int:task_id>')
 def delete(task_id):
     db = get_db()
-    db.execute('DELETE FROM tasks WHERE id=?',(task_id,))
+    db.execute('DELETE FROM tasks WHERE id=?', (task_id,))
     db.commit()
     return redirect(url_for('index'))
 
@@ -197,17 +209,22 @@ def export():
     import csv
     from io import StringIO
     db = get_db()
-    archived = request.args.get('archived')=='1'
+    archived = request.args.get('archived') == '1'
     rows = db.execute('SELECT * FROM tasks WHERE archived=? ORDER BY id', (1 if archived else 0,)).fetchall()
-    si = StringIO(); w=csv.writer(si)
+    si = StringIO()
+    w = csv.writer(si)
     w.writerow(['ID','Text','Deadline','Priorität','Bemerkung','Erstellt am','Erledigt am'])
     for r in rows:
-        w.writerow([r['id'],r['text'],r['deadline'] or '',
-                    r['priority'],r['remark'] or '',
-                    r['created_at'],r['completed_at'] or ''])
-    return app.response_class(si.getvalue(),
-                              mimetype='text/csv',
-                              headers={'Content-Disposition':'attachment;filename=tasks.csv'})
+        w.writerow([
+          r['id'], r['text'], r['deadline'] or '',
+          r['priority'], r['remark'] or '',
+          r['created_at'], r['completed_at'] or ''
+        ])
+    return app.response_class(
+      si.getvalue(),
+      mimetype='text/csv',
+      headers={'Content-Disposition':'attachment;filename=tasks.csv'}
+    )
 
 if __name__ == '__main__':
     backup_data()

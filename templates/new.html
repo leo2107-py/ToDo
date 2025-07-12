@@ -9,7 +9,7 @@
   <button id="darkModeToggle">Dark Mode</button>
   <div class="container">
     <h1>Neue Aufgabe anlegen</h1>
-    <form action="{{ url_for('new_task') }}" method="POST">
+    <form action="{{ url_for('new_task') }}" method="POST" enctype="multipart/form-data">
       <textarea name="task" placeholder="Aufgabe" class="large-input" required></textarea>
       <input type="date" name="deadline" class="large-input">
       <select name="priority" class="large-input">
@@ -18,13 +18,17 @@
         <option value="Niedrig">Niedrig</option>
       </select>
       <textarea name="remark" placeholder="Bemerkung" class="large-input"></textarea>
+      <label class="large-input">
+        Dateien hochladen:<br>
+        <input type="file" name="attachments" multiple>
+      </label>
       <button type="submit">Speichern</button>
       <a href="{{ url_for('index') }}" style="margin-left:15px;">Abbrechen</a>
     </form>
   </div>
 
   <script>
-    // Dark Mode auch hier
+    // Dark Mode Toggle
     const btn = document.getElementById('darkModeToggle');
     if (localStorage.getItem('darkMode')==='enabled') document.body.classList.add('dark-mode');
     btn.addEventListener('click', ()=>{
