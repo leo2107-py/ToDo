@@ -9,36 +9,66 @@
 <body>
   <div class="container">
     <h1>Aufgabe bearbeiten</h1>
-    <form action="{{ url_for('edit', task_id=task['id']) }}" method="POST" class="form-grid">
-      <input type="text" name="task" value="{{ task['text'] }}" required class="wide-input">
-      <input type="date" name="deadline" value="{{ task['deadline'] or '' }}" class="wide-input">
+    <form action="{{ url_for('edit', task_id=task.id) }}" method="POST" class="form-grid">
+      <input type="text" name="task" value="{{ task.text }}" required class="wide-input">
+      <input type="date" name="deadline" value="{{ task.deadline or '' }}" class="wide-input">
       <select name="priority" class="wide-input">
-        <option value="Hoch" {% if task['priority']=='Hoch' %}selected{% endif %}>Hoch</option>
-        <option value="Mittel" {% if task['priority']=='Mittel' %}selected{% endif %}>Mittel</option>
-        <option value="Niedrig" {% if task['priority']=='Niedrig' %}selected{% endif %}>Niedrig</option>
+        <option value="Hoch" {% if task.priority=='Hoch' %}selected{% endif %}>Hoch</option>
+        <option value="Mittel" {% if task.priority=='Mittel' %}selected{% endif %}>Mittel</option>
+        <option value="Niedrig" {% if task.priority=='Niedrig' %}selected{% endif %}>Niedrig</option>
       </select>
-      <textarea name="remark" class="wide-input">{{ task['remark'] or '' }}</textarea>
+      <textarea name="remark" class="wide-input">{{ task.remark or '' }}</textarea>
       <button type="submit">Speichern</button>
     </form>
-    <h2>Angehängte Dateien</h2>
-    <ul>
-      {% for filename in attachments %}
-      <li><a href="{{ url_for('uploaded_file', task_id=task['id'], filename=filename) }}">{{ filename }}</a></li>
-      {% endfor %}
-    </ul>
+
     <h2>Dateien hochladen</h2>
-    <form action="/upload/{{ task['id'] }}" class="dropzone" id="dz-edit-{{ task['id'] }}"></form>
-    {% if attachments %}
-    <h3>Hochgeladene Dateien:</h3>
-    <ul class="attachments">
-      {% for filename in attachments %}
-      <li><a href="{{ url_for('uploaded_file', task_id=task['id'], filename=filename) }}" target="_blank">{{ filename }}</a></li>
-      {% endfor %}
-    </ul>
-    {% endif %}
+    <form action="/upload/{{ task.id }}" class="dropzone" id="dz-edit-{{ task.id }}"></form>
+
+    <h3>Vorhandene Dateien</h3>
+   <ul class="attachments">
+  {% for fn in attachments %}
+    <li>
+      <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" target="_blank">
+        {{ fn }}
+      </a>
+      <a href="{{ url_for('delete_file', task_id=task.id, filename=fn) }}"
+         onclick="return confirm('Datei {{ fn }} wirklich löschen?')">
+        🗑️
+      </a>
+    </li>
+  {% endfor %}
+</ul>
+
 
     <a class="back-link" href="{{ url_for('index') }}">Zurück zur Liste</a>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdnjs.cloudfla```
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+
+  <script>
+    Dropzone.autoDiscover = false;
+
+    const existingEdit = {
+      "{{ task.id }}": [{% for fn in attachments %}"{{ fn }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    };
+
+    (function(id) {
+      const dz = new Dropzone('#dz-edit-' + id, {
+        paramName: 'file',
+        maxFilesize: 10,
+        clickable: true
+      });
+      dz.on('sending', function(file, xhr) {
+        if (existingEdit[id].includes(file.name)) {
+          if (!confirm(`Datei „${file.name}“ existiert bereits. Überschreiben?`)) {
+            xhr.abort();
+          }
+        }
+      });
+      dz.on('success', function() {
+        location.reload();
+      });
+    })({{ task.id }});
+  </script>
+</body>

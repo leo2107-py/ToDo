@@ -4,20 +4,7 @@
   <meta charset="utf-8">
   <title>Aufgaben Kalender</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  <!-- FullCalendar Styles -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet">
-  <style>
-    /* zentriert und responsive */
-    #calendar {
-      max-width: 900px;
-      margin: 20px auto;
-    }
-    /* erledigte Aufgaben leicht ausgegraut */
-    .fc-event.completed-event {
-      opacity: 0.6;
-      text-decoration: line-through;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -25,58 +12,14 @@
     <div id="calendar"></div>
     <a class="back-link" href="{{ url_for('index') }}">Zurück zur Liste</a>
   </div>
-
-  <!-- FullCalendar Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
-  <!-- Deutsches Sprachpaket (alle Locales) -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/locales-all.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      var calendarEl = document.getElementById('calendar');
-      var calendar = new FullCalendar.Calendar(calendarEl, {
-        // Plugins sind im main-Bundle enthalten
-        locale: 'de',
-        initialView: 'dayGridMonth',
-        height: 'auto',
-        events: function(info, successCallback, failureCallback) {
-          fetch('/api/tasks')
-            .then(response => response.json())
-            .then(data => {
-              // Completed-Flag aus deiner API → CSS-Klasse setzen
-              data.forEach(ev => {
-                if (ev.completed) {
-                  ev.classNames = ['completed-event'];
-                }
-              });
-              successCallback(data);
-            })
-            .catch(err => {
-              console.error('Fehler beim Laden der Events', err);
-              failureCallback(err);
-            });
-        },
-        // Tooltip mit Bemerkung anzeigen
-        eventDidMount: function(info) {
-          if (info.event.extendedProps.remark) {
-            var tooltip = new Tooltip(info.el, {
-              title: info.event.extendedProps.remark,
-              placement: 'top',
-              trigger: 'hover',
-              container: 'body'
-            });
-          }
-        }
-      });
-      calendar.render();
+      new FullCalendar.Calendar(
+        document.getElementById('calendar'),
+        { locale: 'de', initialView: 'dayGridMonth', height: 'auto', events: '/api/tasks' }
+      ).render();
     });
   </script>
-  <!-- Falls du Bootstrap-Tooltips nutzen willst: -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet">
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/tooltip.js@1.3.3/dist/umd/tooltip.min.js"></script>
 </body>
-</html>

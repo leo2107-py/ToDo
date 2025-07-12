@@ -9,47 +9,50 @@
 <body>
   <div class="container">
     <h1>Archiv</h1>
-    <table id="archiveTable" class="task-table">
-      <thead>
-        <tr>
-          <th>Priorität</th>
-          <th>Aufgabe</th>
-          <th>Deadline</th>
-          <th>Bemerkung</th>
-          <th>Anhang</th>
-          <th>Erledigt am</th>
-          <th>Aktionen</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for task in tasks %}
-        <tr>
-          <td>{{ task.priority }}</td>
-          <td>{{ task.text }}</td>
-          <td>{{ task.deadline or '' }}</td>
-          <td>{{ task.remark or '' }}</td>
-          <td class="upload-cell">
-            {% if task.attachments %}
-            <ul class="attachments">
-              {% for fn in task.attachments %}
-                <li>
-                  <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}"
-                     target="_blank">{{ fn }}</a>
-                </li>
-              {% endfor %}
-            </ul>
-            {% else %}
-              –
-            {% endif %}
-          </td>
-          <td>{{ task.completed_at or '' }}</td>
-          <td>
-            <a href="{{ url_for('delete', task_id=task.id) }}">Löschen</a>
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+<table id="archiveTable" class="task-table">
+  <thead>
+    <tr>
+      <th>Priorität</th><th>Aufgabe</th><th>Deadline</th><th>Bemerkung</th>
+      <th>Anhang</th><th>Erledigt am</th><th>Aktionen</th><th>Wiederherstellen</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for task in tasks %}
+    <tr>
+      <td>{{ task.priority }}</td>
+      <td>{{ task.text }}</td>
+      <td>{{ task.deadline or '' }}</td>
+      <td>{{ task.remark or '' }}</td>
+      <td class="upload-cell">
+        {% if task.attachments %}
+          <ul class="attachments">
+          {% for fn in task.attachments %}
+            <li>
+              <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" target="_blank">
+                {{ fn }}
+              </a>
+              <a href="{{ url_for('delete_file', task_id=task.id, filename=fn) }}"
+                 onclick="return confirm('Datei {{ fn }} wirklich löschen?')">
+                🗑️
+              </a>
+            </li>
+          {% endfor %}
+          </ul>
+        {% else %}&ndash;{% endif %}
+      </td>
+      <td>{{ task.completed_at or '' }}</td>
+      <td>
+        <a href="{{ url_for('delete', task_id=task.id) }}"
+           onclick="return confirm('Aufgabe endgültig löschen?')">Löschen</a>
+      </td>
+      <td>
+        <a href="{{ url_for('restore', task_id=task.id) }}">↩︎ Zurück</a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
     <a class="back-link" href="{{ url_for('index') }}">Zurück</a>
   </div>
 
@@ -61,4 +64,3 @@
     });
   </script>
 </body>
-</html>
