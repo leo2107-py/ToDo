@@ -3,62 +3,59 @@
 <head>
   <meta charset="utf-8">
   <title>ToDo Übersicht</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='styles.css') }}">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
 </head>
 <body>
-  <button id="darkModeToggle">Dark Mode</button>
+  <button id="darkModeToggle">Toggle Light/Dark</button>
   <div class="container">
     <h1>ToDo Übersicht</h1>
     <div class="nav">
       <a href="{{ url_for('new_task') }}">➕ Neue Aufgabe</a>
       <a href="{{ url_for('calendar_view') }}">🗓 Kalender</a>
       <a href="{{ url_for('archive') }}">📦 Archiv</a>
-      <a href="{{ url_for('export') }}">⬇️ Export (CSV)</a>
+      <a href="{{ url_for('export') }}">⬇️ Export (XLSX)</a>
     </div>
     <table id="taskTable" class="task-table">
-      <thead>
-        <tr>
-          <th>Priorität</th><th>Aufgabe</th><th>Deadline</th>
-          <th>Bemerkung</th><th>Anhang</th><th>Status</th><th>Aktionen</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th>Priorität</th><th>Aufgabe</th><th>Deadline</th>
+        <th>Bemerkung</th><th>Anhang</th><th>Status</th><th>Aktionen</th>
+      </tr></thead>
       <tbody>
       {% for task in tasks %}
         <tr class="{% if task.completed %}completed{% elif task.overdue %}overdue{% endif %}">
           <td>{{ task.priority }}</td>
-          <td><a href="{{ url_for('task_detail', task_id=task.id) }}">{{ task.text }}</a></td>
+          <td><a href="{{ url_for('task_detail',task_id=task.id) }}">{{ task.text }}</a></td>
           <td>{{ task.deadline or '' }}</td>
           <td>{{ task.remark or '' }}</td>
           <td class="upload-cell">
             <form action="/upload/{{ task.id }}" class="dropzone" id="dz-{{ task.id }}"></form>
             {% if task.attachments %}
               <ul class="attachments">
-              {% for fn in task.attachments %}
-                <li>
-                  {% if fn.lower().endswith(('.png','.jpg','.jpeg','.gif')) %}
-                    <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" target="_blank">
-                      <img src="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" class="thumbnail">
-                    </a>
-                  {% else %}
-                    <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" target="_blank">{{ fn }}</a>
-                  {% endif %}
-                  <a href="{{ url_for('delete_file', task_id=task.id, filename=fn) }}"
-                     onclick="return confirm('Datei {{ fn }} wirklich löschen?')">🗑️</a>
-                </li>
-              {% endfor %}
+                {% for fn in task.attachments %}
+                  <li>
+                    {% if fn.lower().endswith(('.png','.jpg','.jpeg','.gif')) %}
+                      <a href="{{ url_for('uploaded_file',task_id=task.id,filename=fn) }}" target="_blank">
+                        <img src="{{ url_for('uploaded_file',task_id=task.id,filename=fn) }}" class="thumbnail">
+                      </a>
+                    {% else %}
+                      <a href="{{ url_for('uploaded_file',task_id=task.id,filename=fn) }}" target="_blank">{{ fn }}</a>
+                    {% endif %}
+                    <a href="{{ url_for('delete_file',task_id=task.id,filename=fn) }}"
+                       onclick="return confirm('Datei {{ fn }} wirklich löschen?')">🗑️</a>
+                  </li>
+                {% endfor %}
               </ul>
             {% endif %}
           </td>
           <td>{% if task.completed %}Erledigt{% else %}Offen{% endif %}</td>
           <td>
-            <a href="{{ url_for('toggle', task_id=task.id) }}">
+            <a href="{{ url_for('toggle',task_id=task.id) }}">
               {% if task.completed %}↩ Offen{% else %}✔ Erledigt{% endif %}
             </a>
-            <a href="{{ url_for('edit', task_id=task.id) }}">✏️</a>
-            <a href="{{ url_for('delete', task_id=task.id) }}"
-               onclick="return confirm('Aufgabe endgültig löschen?')">🗑️</a>
+            <a href="{{ url_for('edit',task_id=task.id) }}">✏️</a>
+            <a href="{{ url_for('delete',task_id=task.id) }}" onclick="return confirm('Löschen?')">🗑️</a>
           </td>
         </tr>
       {% endfor %}
@@ -72,7 +69,9 @@
   <script>
     // Dark Mode Toggle
     const btn = document.getElementById('darkModeToggle');
-    if (localStorage.getItem('darkMode')==='enabled') document.body.classList.add('dark-mode');
+    if (localStorage.getItem('darkMode')!=='disabled') {
+      document.body.classList.add('dark-mode');
+    }
     btn.addEventListener('click', ()=>{
       document.body.classList.toggle('dark-mode');
       localStorage.setItem('darkMode',
@@ -83,17 +82,17 @@
     Dropzone.autoDiscover = false;
     const existing = {
       {% for task in tasks %}
-      "{{ task.id }}":[{% for fn in task.attachments %}"{{ fn }}"{% if not loop.last %}, {% endif %}{% endfor %}],
+      "{{ task.id }}": [{% for fn in task.attachments %}"{{ fn }}"{% if not loop.last %}, {% endif %}{% endfor %}],
       {% endfor %}
     };
     $(function(){
       $('#taskTable').DataTable({ dom:'frtip', order:[[0,'asc']] });
       {% for task in tasks %}
       (function(id){
-        let dz=new Dropzone('#dz-'+id,{paramName:'file',maxFilesize:10,clickable:true});
+        const dz=new Dropzone('#dz-'+id,{ paramName:'file', maxFilesize:10, clickable:true });
         dz.on('sending',(file,xhr)=>{
-          if(existing[id].includes(file.name) &&
-             !confirm(`Datei „${file.name}“ existiert bereits. Überschreiben?`)) xhr.abort();
+          if(existing[id].includes(file.name)&&
+             !confirm(`Datei „${file.name}“ existiert bereits.`)) xhr.abort();
         });
         dz.on('success',()=>location.reload());
       })({{ task.id }});
