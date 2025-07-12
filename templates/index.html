@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
 </head>
 <body>
+  <button id="darkModeToggle">Dark Mode</button>
+
   <div class="container">
     <h1>ToDo Liste</h1>
     <form action="/" method="POST" class="form-grid">
@@ -73,8 +75,8 @@
     </table>
 
     <div class="nav">
-      <a href="{{ url_for('calendar_view') }}">Zum Kalender</a><br>
-      <a href="{{ url_for('archive') }}">Archiv</a><br>
+      <a href="{{ url_for('calendar_view') }}">Zum Kalender</a>
+      <a href="{{ url_for('archive') }}">Archiv</a>
       <a href="{{ url_for('export') }}">Exportieren (CSV)</a>
     </div>
   </div>
@@ -83,6 +85,16 @@
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
   <script>
+    // Dark Mode
+    const btn = document.getElementById('darkModeToggle');
+    if (localStorage.getItem('darkMode')==='enabled') document.body.classList.add('dark-mode');
+    btn.addEventListener('click', ()=>{
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode',
+        document.body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
+    });
+
+    // DataTable + Dropzone
     Dropzone.autoDiscover = false;
     const existing = {
       {% for task in tasks %}
@@ -92,17 +104,15 @@
     $(function() {
       $('#taskTable').DataTable({ dom:'frtip', order:[[0,'asc']] });
       {% for task in tasks %}
-      (function(id) {
-        const dz = new Dropzone('#dz-' + id, {
-          paramName: 'file', maxFilesize: 10, clickable: true
-        });
-        dz.on('sending', function(file, xhr) {
-          if (existing[id].includes(file.name) &&
-              !confirm(`Datei „${file.name}“ existiert bereits. Überschreiben?`)) {
+      (function(id){
+        let dz=new Dropzone('#dz-'+id,{paramName:'file',maxFilesize:10,clickable:true});
+        dz.on('sending',(file,xhr)=>{
+          if(existing[id].includes(file.name) &&
+             !confirm(`Datei „${file.name}“ existiert bereits. Überschreiben?`)){
             xhr.abort();
           }
         });
-        dz.on('success', () => location.reload());
+        dz.on('success',()=>location.reload());
       })({{ task.id }});
       {% endfor %}
     });
