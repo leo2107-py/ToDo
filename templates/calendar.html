@@ -18,8 +18,17 @@
     document.addEventListener('DOMContentLoaded', function() {
       new FullCalendar.Calendar(
         document.getElementById('calendar'),
-        { locale: 'de', initialView: 'dayGridMonth', height: 'auto', events: '/api/tasks' }
+        {
+          locale: 'de',
+          initialView: 'dayGridMonth',
+          height: 'auto',
+          events: '/api/tasks',
+          eventClick: function(info) {
+            window.location.href = '/task/' + info.event.id;
+          }
+        }
       ).render();
     });
   </script>
 </body>
+</html>

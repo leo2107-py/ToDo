@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Aufgabe #{{ task.id }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Aufgabe Details</h1>
+    <dl class="details">
+      <dt>Text:</dt><dd>{{ task.text }}</dd>
+      <dt>Deadline:</dt><dd>{{ task.deadline or '–' }}</dd>
+      <dt>Priorität:</dt><dd>{{ task.priority }}</dd>
+      <dt>Bemerkung:</dt><dd>{{ task.remark or '–' }}</dd>
+      <dt>Erstellt am:</dt><dd>{{ task.created_at }}</dd>
+      <dt>Status:</dt><dd>{% if task.completed %}Erledigt{% else %}Offen{% endif %}</dd>
+      <dt>Erledigt am:</dt><dd>{{ task.completed_at or '–' }}</dd>
+      <dt>Anlagen:</dt>
+      <dd>
+        {% if task.attachments %}
+          <ul class="attachments">
+          {% for fn in task.attachments %}
+            <li>
+              <a href="{{ url_for('uploaded_file', task_id=task.id, filename=fn) }}" target="_blank">
+                {{ fn }}
+              </a>
+            </li>
+          {% endfor %}
+          </ul>
+        {% else %}
+          –
+        {% endif %}
+      </dd>
+    </dl>
+    <div class="actions">
+      <a href="{{ url_for('toggle', task_id=task.id) }}">
+        {% if task.completed %}Als offen markieren{% else %}Als erledigt markieren{% endif %}
+      </a>
+      <a href="{{ url_for('edit', task_id=task.id) }}">Bearbeiten</a>
+      <a href="{{ url_for('delete', task_id=task.id) }}"
+         onclick="return confirm('Aufgabe endgültig löschen?')">Löschen</a>
+      <a href="{{ url_for('index') }}">Zurück zur Liste</a>
+    </div>
+  </div>
+</body>
+</html>

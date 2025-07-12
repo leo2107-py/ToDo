@@ -28,6 +28,8 @@ h1 { text-align: center; color: #333; margin-bottom: 20px; }
 }
 .task-table th { background: #f0f0f0; }
 .task-table tr.completed { background: #f9f9f9; color: #888; }
+.task-table tr.overdue { background: #ffe5e5; }
+.task-table tr:hover { background: #eef; cursor: pointer; }
 .upload-cell {
     display: flex; flex-direction: column;
     align-items: center; gap: 5px;
@@ -45,7 +47,18 @@ h1 { text-align: center; color: #333; margin-bottom: 20px; }
 .attachments li {
     margin-bottom: 4px;
 }
+.thumbnail {
+    max-width: 80px;
+    max-height: 80px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
 .back-link { display: block; text-align: center; margin-top: 20px; }
 .back-link a { color: #007BFF; text-decoration: none; }
 .back-link a:hover { text-decoration: underline; }
-#calendar { margin: 20px auto; }
+.details dt { font-weight: bold; margin-top: 10px; }
+.details dd { margin-left: 0; margin-bottom: 5px; }
+.actions a { display: inline-block; margin-right: 10px; }
+.dark-mode {
+    background-color: #333; color: #eee;
+}
