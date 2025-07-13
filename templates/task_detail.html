@@ -33,9 +33,6 @@
       </dd>
     </dl>
     <div class="actions">
-      <a href="{{ url_for('toggle', task_id=task.id) }}">
-        {% if task.completed %}Als offen markieren{% else %}Als erledigt markieren{% endif %}
-      </a>
       <a href="{{ url_for('edit', task_id=task.id) }}">Bearbeiten</a>
       <a href="{{ url_for('delete', task_id=task.id) }}"
          onclick="return confirm('Aufgabe endgültig löschen?')">Löschen</a>
