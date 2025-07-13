@@ -199,6 +199,16 @@ def archive():
         tasks.append(task)
     return render_template('archive.html', tasks=tasks)
 
+@app.route('/restore/<int:task_id>')
+def restore(task_id):
+    db = get_db()
+    db.execute(
+        'UPDATE tasks SET archived=0, completed=0, completed_at=NULL WHERE id=?',
+        (task_id,)
+    )
+    db.commit()
+    return redirect(url_for('archive'))
+
 @app.route('/api/tasks')
 def api_tasks():
     db = get_db()
