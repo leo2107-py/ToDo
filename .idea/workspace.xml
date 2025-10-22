@@ -95,7 +95,10 @@
       <workItem from="1752354693857" duration="3163000" />
       <workItem from="1752359416433" duration="383000" />
       <workItem from="1752360171498" duration="2449000" />
-      <workItem from="1752427533221" duration="637000" />
+      <workItem from="1752427533221" duration="1035000" />
+      <workItem from="1752428630840" duration="42000" />
+      <workItem from="1760305188305" duration="92000" />
+      <workItem from="1760305605788" duration="40000" />
     </task>
     <task id="LOCAL-00001" summary="test">
       <option name="closed" value="true" />
@@ -185,7 +188,15 @@
       <option name="project" value="LOCAL" />
       <updated>1752427596050</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="aktueller stand">
+      <option name="closed" value="true" />
+      <created>1752428495286</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1752428495286</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -208,7 +219,7 @@
     <option name="LAST_COMMIT_MESSAGE" value="aktueller stand" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ToDo$app.coverage" NAME="app Coverage Results" MODIFIED="1752427560437" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ToDo$app.coverage" NAME="app Coverage Results" MODIFIED="1752428643021" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ToDo$wsgi.coverage" NAME="wsgi Coverage Results" MODIFIED="1741390684790" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
